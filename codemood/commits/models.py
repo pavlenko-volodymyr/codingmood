@@ -18,5 +18,8 @@ class Commit(TimeStampedModel):
 
     messages = models.TextField(null=True, blank=True)
 
+    author = models.TextField(null=True, blank=True)
+    author_email = models.EmailField(null=True, blank=True)
+
     def __unicode__(self):
         return self.commit_id

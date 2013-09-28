@@ -75,7 +75,12 @@ class Analyzer(object):
 
     @property
     def commits_ids(self):
-        return reversed([i.id for i in self.repo.log()])
+        try:
+            ids = [i.id for i in self.repo.log()]
+        except AttributeError:
+            # we have problem with regexp for commit message parsing in pythongit
+            ids = self.repo.git.log("master", "--", pretty="%H").splitlines()
+        return reversed(ids)
 
     @property
     def python_files(self):
@@ -93,24 +98,33 @@ class Analyzer(object):
         pass
 
     def post_commit_checkout(self, commit_id, prev_commit_id=None):
+        print(commit_id == prev_commit_id)
+
         lint_results = map(self.lint_file, self.python_files)
         normalization_koef = pow(10.0, len(lint_results)) / 10.0
-        code_rate = sum([float(i['code_rate']) for i in lint_results]) / normalization_koef
-        struct_time = self.repo.commit(commit_id).committed_date
+        code_rates = filter(None, [i['code_rate'] for i in lint_results])
+        code_rates = map(float, code_rates)
+        code_rate = sum(code_rates) / normalization_koef
+        print(pow(10.0, len(lint_results)), sum(code_rates), code_rate)
+
+        commit = self.repo.commit(commit_id)
+        struct_time = commit.committed_date
 
         # TODO: will convert in localtime, check this
         date = datetime.fromtimestamp(mktime(struct_time))
         data = {
             'commit_id': commit_id, 'date': date,
             'code_rate': code_rate,
-            'messages': "\n".join(i['messages'] for i in lint_results)
+            'messages': "\n".join(i['messages'] for i in lint_results),
+            'author': commit.author.name,
+            'author_email': commit.author.email
         }
         if prev_commit_id:
             prev_struct_time = self.repo.commit(commit_id).committed_date
             prev_date = datetime.fromtimestamp(mktime(prev_struct_time))
             data['prev_date'] = prev_date
 
-        Commit.objects.create(**data)
+        #Commit.objects.create(**data)
         #print('Commit code rate: {}'.format())
 
     def lint_file(self, file_path):
@@ -126,7 +140,6 @@ class Analyzer(object):
     def iterate_commits(self):
         prev_commit_id = None
         for commit_id in self.commits_ids:
-            #print('ID {}'.format(commit_id))
             self.pre_commit_checkout(commit_id, prev_commit_id)
             self.repo.git.checkout(commit_id)
             self.post_commit_checkout(commit_id, prev_commit_id)
