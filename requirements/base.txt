@@ -8,3 +8,4 @@ django-extensions==1.2.2
 Werkzeug==0.9.4
 django-social-auth==0.7.28
 facebook-sdk==0.4.0
+gitpython

@@ -247,3 +247,5 @@ LOGGING = {
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = '%s.wsgi.application' % SITE_NAME
 ########## END WSGI CONFIGURATION
+
+GIT_REPOSITORIES_DIR = normpath(join(SITE_ROOT, 'git_repositories_sandbox'))
