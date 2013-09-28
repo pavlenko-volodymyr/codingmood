@@ -9,6 +9,12 @@ class Repository(TimeStampedModel):
 
 class Commit(TimeStampedModel):
     #FIXME: should be 38, but maybe i'm wrong
-    hash = models.CharField(max_length=100)
+    commit_id = models.CharField(max_length=100)
+
     code_rate = models.FloatField()
+
     date = models.DateTimeField()
+    prev_date = models.DateTimeField()
+
+    def __unicode__(self):
+        return self.hash

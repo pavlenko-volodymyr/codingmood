@@ -5,12 +5,17 @@ from subprocess import Popen, PIPE, STDOUT
 from cStringIO import StringIO
 from os.path import join, normpath, isdir
 from shutil import rmtree
+from time import mktime
+from datetime import datetime
 
 from git import Git, Repo
 from pylint import epylint as lint
 from pylint.lint import Run
 
 from django.conf import settings
+
+
+from .models import Commit
 
 
 class Analyzer(object):
@@ -80,12 +85,27 @@ class Analyzer(object):
     def update_repository(self):
         pass
 
-    def pre_commit_checkout(self):
+    def pre_commit_checkout(self, commit_id, prev_commit_id=None):
         pass
 
-    def post_commit_checkout(self):
+    def post_commit_checkout(self, commit_id, prev_commit_id=None):
         lint_results = map(float, map(self.lint_file, self.python_files))
-        print('Commit code rate: {}'.format(sum(lint_results)))
+        code_rate = sum(lint_results)
+        struct_time = self.repo.commit(commit_id).committed_date
+
+        # TODO: will convert in localtime, check this
+        date = datetime.fromtimestamp(mktime(struct_time))
+        data = {
+            'hash': commit_id, 'date': date,
+            'code_rate': code_rate
+        }
+        if prev_commit_id:
+            prev_struct_time = self.repo.commit(commit_id).committed_date
+            prev_date = datetime.fromtimestamp(mktime(prev_struct_time))
+            data['prev_date'] = prev_date
+
+        Commit.objects.create(**data)
+        #print('Commit code rate: {}'.format())
 
     def lint_file(self, file_path):
         full_file_path = normpath(join(self.repo_dir_path, file_path))
@@ -94,9 +114,11 @@ class Analyzer(object):
         return match.groups()[0] if match else None
 
     def iterate_commits(self):
+        prev_commit_id = None
         for commit_id in self.commits_ids:
-            print('ID {}'.format(commit_id))
-            self.pre_commit_checkout()
+            #print('ID {}'.format(commit_id))
+            self.pre_commit_checkout(commit_id, prev_commit_id)
             self.repo.git.checkout(commit_id)
-            self.post_commit_checkout()
+            self.post_commit_checkout(commit_id, prev_commit_id)
+            prev_commit_id = commit_id
         self.repo.git.checkout('master')
