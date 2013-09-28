@@ -10,3 +10,4 @@ django-social-auth==0.7.28
 facebook-sdk==0.4.0
 gitpython
 django-redis==3.3
+django-celery==3.0.23
