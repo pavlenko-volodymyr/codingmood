@@ -189,26 +189,42 @@ DJANGO_APPS = (
 
     # Admin panel and documentation:
     'django.contrib.admin',
-    # 'django.contrib.admindocs',
 )
 
 THIRD_PARTY_APPS = (
-    # Database migration helpers:
     'south',
     'django_extensions',
     'model_utils',
-    'braces'
+    'braces',
+    'djcelery',
+    'social_auth',
 )
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
-    "commits",
+    'commits',
+    'social',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 ########## END APP CONFIGURATION
+AUTHENTICATION_BACKENDS = (
+    'social_auth.backends.facebook.FacebookBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
+FACEBOOK_EXTENDED_PERMISSIONS = ['user_likes', 'manage_notifications', 'user_activities', 'read_stream']
+
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.cache.RedisCache",
+        "LOCATION": "127.0.0.1:6379:1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "redis_cache.client.DefaultClient",
+        }
+    }
+}
 
 ########## LOGGING CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#logging
@@ -242,6 +258,8 @@ LOGGING = {
 }
 ########## END LOGGING CONFIGURATION
 
+import djcelery
+djcelery.setup_loader()
 
 ########## WSGI CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
