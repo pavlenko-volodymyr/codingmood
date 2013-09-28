@@ -1,7 +1,8 @@
 from celery import task
-from facebook import GraphAPI
+
+from .utils import graph_connection as graph
 
 
 @task
 def get_user_timeline(facebook_id):
-    graph = GraphAPI()
+    posts = graph.get_connections(str(facebook_id), 'feed')
