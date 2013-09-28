@@ -12,7 +12,7 @@ from .models import Post
 
 
 @task
-def get_user_timeline(facebook_id):
+def grab_users_posts(facebook_id):
     user_social_profile = UserSocialAuth.objects.get(uid=facebook_id)
 
     graph = GraphAPI(user_social_profile.extra_data.get('access_token'))
