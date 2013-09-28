@@ -199,7 +199,8 @@ THIRD_PARTY_APPS = (
     'braces',
     'djcelery',
     'social_auth',
-    'django_ace'
+    'django_ace',
+    'gravatar'
 )
 
 # Apps specific for this project go here.

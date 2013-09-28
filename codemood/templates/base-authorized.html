@@ -1,9 +1,17 @@
 {% extends 'base.html' %}
+{% load gravatar %}
+
 
 
 {% block body %}
   <div class="masthead">
+    <div class="pull-right gravatar" style="background-image:url('{% gravatar_for_user request.user 100 %}');">
+
+    <img src="">
+    </div>
     <h3 class="muted">Codingmood</h3>
+
+
   </div>
 
   <hr>
