@@ -23,11 +23,12 @@ def get_text_sentiment_analysis(text):
     """
     #no need to analyse empty strings
     assert text
+    def to_10(float):
+        return round(float*10, 0)
 
-    response = requests.get('http://text-processing.com/api/sentiment/', {'text': text}).json()
-
-    return {'pos': response.get('probability').get('pos'),
-            'neg': response.get('probability').get('neg'),
-            'neutral': response.get('probability').get('neutral'),
+    response = requests.post('http://text-processing.com/api/sentiment/', {'text': text}).json()
+    return {'pos': to_10(response.get('probability').get('pos')),
+            'neg': to_10(response.get('probability').get('neg')),
+            'neutral': to_10(response.get('probability').get('neutral')),
             'total': response.get('label')
     }
