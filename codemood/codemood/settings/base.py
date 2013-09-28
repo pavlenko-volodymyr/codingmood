@@ -198,6 +198,7 @@ THIRD_PARTY_APPS = (
     'braces',
     'djcelery',
     'social_auth',
+    'django_ace'
 )
 
 # Apps specific for this project go here.

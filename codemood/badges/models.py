@@ -11,12 +11,16 @@ class Badge(models.Model):
     """
     Badges that user can get
     """
+    UPLOAD_DIR = 'badges'
 
     title = models.CharField(_('Title'), max_length=250)
     description = models.TextField(_('Description'))
-    image = models.ImageField(_('Image'), upload_to=make_upload_path)
+    image = models.ImageField(_('Image'), upload_to=make_upload_path, blank=True)
 
     qs = models.TextField(_('Badge query'))
+
+    def __unicode__(self):
+        return self.title
 
 
 class BadgeUser(models.Model):
