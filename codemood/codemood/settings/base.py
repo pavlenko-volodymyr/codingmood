@@ -197,17 +197,36 @@ THIRD_PARTY_APPS = (
     'model_utils',
     'braces',
     'djcelery',
+    'social_auth',
 )
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
-    "commits",
+    'commits',
+    'social',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 ########## END APP CONFIGURATION
+AUTHENTICATION_BACKENDS = (
+    'social_auth.backends.facebook.FacebookBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
+FACEBOOK_APP_ID = '331216490356365'
+FACEBOOK_API_SECRET='9c1e9362ed58e2c00610f2fbaf099415'
+FACEBOOK_EXTENDED_PERMISSIONS = ['user_likes', 'manage_notifications', 'user_activities', 'read_stream']
+
+CACHES = {
+    "default": {
+        "BACKEND": "redis_cache.cache.RedisCache",
+        "LOCATION": "127.0.0.1:6379:1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "redis_cache.client.DefaultClient",
+        }
+    }
+}
 
 ########## LOGGING CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#logging
