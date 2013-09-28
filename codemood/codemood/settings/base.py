@@ -214,8 +214,6 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-FACEBOOK_APP_ID = '331216490356365'
-FACEBOOK_API_SECRET='9c1e9362ed58e2c00610f2fbaf099415'
 FACEBOOK_EXTENDED_PERMISSIONS = ['user_likes', 'manage_notifications', 'user_activities', 'read_stream']
 
 CACHES = {
