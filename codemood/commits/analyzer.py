@@ -24,35 +24,33 @@ class Analyzer(object):
     code_rate_pattern = re.compile(r"Your code has been rated at ([-0-9.]+)")
 
     def _lint(self, file_path):
-        #old_stdout, old_stderr = sys.stdout, sys.stderr
-        #sys.stdout, sys.stderr = StringIO(), StringIO()
-        #
-        #full_path = os.path.abspath(file_path)
-        #parent_path, child_path = os.path.dirname(full_path), os.path.basename(full_path)
-        #
-        #while parent_path != "/" and os.path.exists(os.path.join(parent_path, '__init__.py')):
-        #    child_path = os.path.join(os.path.basename(parent_path), child_path)
-        #    parent_path = os.path.dirname(parent_path)
-        #
-        #lint_options = [
-        #    '--msg-template',
-        #    '-r', 'n',
-        #    '--disable=C,R,I',
-        #    child_path  # should be last
-        #]
-        #Run(" ".join(lint_options), exit=False)
+        old_stdout, old_stderr = sys.stdout, sys.stderr
+        sys.stdout, sys.stderr = StringIO(), StringIO()
+
+        lint_options = [
+            '--msg-template',
+            '-r', 'n',
+            '--disable=C,R,I',
+            file_path  # should be last
+        ]
+        try:
+            Run(lint_options, exit=False)
+        except AttributeError:
+            # sometimes we have lint errors with reading file
+            self.errors_files.append(file_path)
+            return ''
         lint_stdout, lint_stderr = sys.stdout, sys.stderr
-        #sys.stdout, sys.stderr = old_stdout, old_stderr
-        pylint_stdout, pylint_stderr = lint.py_run(file_path, script='pylint', return_std=True)
-        #p = Popen('pylint', stdout=PIPE, stdin=PIPE, stderr=STDOUT, universal_newlines=True)
-        #return p.communicate()[0]
-        return pylint_stdout.read()
+        sys.stdout, sys.stderr = old_stdout, old_stderr
+
+        return lint_stdout.getvalue()
 
     def __init__(self, url):
         self.url = url
         self.repo_name = self.url.split('/')[-1].strip(".git")
         self.repo_dir_path = normpath(join(settings.GIT_REPOSITORIES_DIR, self.repo_name))
         self.repo = None if not isdir(normpath(join(self.repo_dir_path, '.git'))) else Repo(self.repo_dir_path)
+        self.errors_files = []
+        self.commits = []
 
     def clone_repository(self):
         if isdir(self.repo_dir_path):
@@ -98,14 +96,11 @@ class Analyzer(object):
         pass
 
     def post_commit_checkout(self, commit_id, prev_commit_id=None):
-        print(commit_id == prev_commit_id)
-
         lint_results = map(self.lint_file, self.python_files)
         normalization_koef = pow(10.0, len(lint_results)) / 10.0
         code_rates = filter(None, [i['code_rate'] for i in lint_results])
         code_rates = map(float, code_rates)
         code_rate = sum(code_rates) / normalization_koef
-        print(pow(10.0, len(lint_results)), sum(code_rates), code_rate)
 
         commit = self.repo.commit(commit_id)
         struct_time = commit.committed_date
@@ -124,8 +119,8 @@ class Analyzer(object):
             prev_date = datetime.fromtimestamp(mktime(prev_struct_time))
             data['prev_date'] = prev_date
 
-        #Commit.objects.create(**data)
-        #print('Commit code rate: {}'.format())
+        self.commits.append(data)
+        print('{commit_id} {code_rate} {author} {author_email}'.format(**data))
 
     def lint_file(self, file_path):
         full_file_path = normpath(join(self.repo_dir_path, file_path))
@@ -145,3 +140,4 @@ class Analyzer(object):
             self.post_commit_checkout(commit_id, prev_commit_id)
             prev_commit_id = commit_id
         self.repo.git.checkout('master')
+        print(self.errors_files)
