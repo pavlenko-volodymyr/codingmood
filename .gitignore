@@ -20,4 +20,4 @@ build
 
 local.py
 .idea/*
-git_repositories_sandbox/*
+codemood/git_repositories_sandbox/
