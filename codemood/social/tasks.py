@@ -15,7 +15,7 @@ from .models import Post
 def grab_users_posts(facebook_id):
     user_social_profile = UserSocialAuth.objects.get(uid=facebook_id)
 
-    graph = GraphAPI(user_social_profile.extra_data.get('access_token'))
+    graph = GraphAPI(user_social_profile.extra_data['access_token'])
 
     graph.extend_access_token(settings.FACEBOOK_APP_ID, settings.FACEBOOK_API_SECRET)
 
@@ -26,14 +26,16 @@ def grab_users_posts(facebook_id):
 
     for post in res:
         post = Post(user=user_social_profile.user,
-                    created=datetime.fromtimestamp(post.get('created_time')),
-                    content=post.get('message'),
-                    link=post.get('permalink'),
+                    created=datetime.fromtimestamp(post['created_time']),
+                    content=post['message'],
+                    link=post['permalink'],
                  )
         mood_stats = get_text_sentiment_analysis(post.content)
-        post.mood = mood_stats.get('total')
-        post.mood_positive = mood_stats.get('pos')
-        post.mood_negative = mood_stats.get('neg')
-        post.mood_neutral = mood_stats.get('neutral')
+        post.mood = mood_stats['total']
+        post.mood_positive = mood_stats['pos']
+        post.mood_negative = mood_stats['neg']
+        post.mood_neutral = mood_stats['neutral']
 
         post.save()
+
+    return True
