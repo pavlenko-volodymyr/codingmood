@@ -1,0 +1,23 @@
+{% extends 'base-authorized.html' %}
+
+{% block container %}
+  <div class="span8">
+
+    {% for badge in bage_list %}
+      <div class="span3 inline-block mbm">
+        <div class="tile">
+          <img src="images/icons/Compas@2x.png" alt="Compas@2x" class="tile-image big-illustration">
+          <h3 class="tile-title">Web Oriented</h3>
+          <p>100% convertable to HTML/CSS layout.</p>
+          <a class="btn btn-primary btn-large btn-block" href="http://designmodo.com/flat">Get Pro</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="row mbl">
+        <a  class="span3 offset4 palette palette-turquoise text-center">You don't have badges</a>
+      </div>
+    {% endfor %}
+
+
+  </div>
+{% endblock %}

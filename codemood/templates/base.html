@@ -20,11 +20,11 @@
     <![endif]-->
   </head>
   <body>
-    <div class="container">
-      {% block container %}{% endblock %}
-    </div>
-    <!-- /.container -->
 
+    <div class="container-fluid">
+      {% block body %}
+      {% endblock %}
+    </div>
 
     <!-- Load JS here for greater good =============================-->
     <script src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
