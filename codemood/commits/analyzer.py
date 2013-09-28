@@ -1,9 +1,11 @@
 import re
 import sys
+from math import pow
 import os
 from subprocess import Popen, PIPE, STDOUT
 from cStringIO import StringIO
 from os.path import join, normpath, isdir
+from os import mkdir
 from shutil import rmtree
 from time import mktime
 from datetime import datetime
@@ -46,16 +48,17 @@ class Analyzer(object):
         #return p.communicate()[0]
         return pylint_stdout.read()
 
-    # TODO: remove DUMMY_GIT_REPOSITORY
-    def __init__(self, url=settings.DUMMY_GIT_REPOSITORY):
+    def __init__(self, url):
         self.url = url
         self.repo_name = self.url.split('/')[-1].strip(".git")
         self.repo_dir_path = normpath(join(settings.GIT_REPOSITORIES_DIR, self.repo_name))
-        self.repo = None if not normpath(join(self.repo_dir_path, '.git')) else Repo(self.repo_dir_path)
+        self.repo = None if not isdir(normpath(join(self.repo_dir_path, '.git'))) else Repo(self.repo_dir_path)
 
     def clone_repository(self):
         if isdir(self.repo_dir_path):
             rmtree(self.repo_dir_path)
+
+        mkdir(self.repo_dir_path)
 
         Git().clone(self.url, self.repo_dir_path)
         cloned_successful = isdir(self.repo_dir_path)
@@ -78,7 +81,8 @@ class Analyzer(object):
     def python_files(self):
         skip_rules = lambda j: any([
             not j.endswith(".py"),
-            j.endswith("__init__.py")
+            j.endswith("__init__.py"),
+            'settings' in j
         ])
         return [i for i in self.repo.git.ls_files().split() if not skip_rules(i)]
 
@@ -89,15 +93,17 @@ class Analyzer(object):
         pass
 
     def post_commit_checkout(self, commit_id, prev_commit_id=None):
-        lint_results = map(float, map(self.lint_file, self.python_files))
-        code_rate = sum(lint_results)
+        lint_results = map(self.lint_file, self.python_files)
+        normalization_koef = pow(10.0, len(lint_results)) / 10.0
+        code_rate = sum([float(i['code_rate']) for i in lint_results]) / normalization_koef
         struct_time = self.repo.commit(commit_id).committed_date
 
         # TODO: will convert in localtime, check this
         date = datetime.fromtimestamp(mktime(struct_time))
         data = {
-            'hash': commit_id, 'date': date,
-            'code_rate': code_rate
+            'commit_id': commit_id, 'date': date,
+            'code_rate': code_rate,
+            'messages': "\n".join(i['messages'] for i in lint_results)
         }
         if prev_commit_id:
             prev_struct_time = self.repo.commit(commit_id).committed_date
@@ -111,7 +117,11 @@ class Analyzer(object):
         full_file_path = normpath(join(self.repo_dir_path, file_path))
         lint_report = self._lint(full_file_path)
         match = self.code_rate_pattern.search(lint_report)
-        return match.groups()[0] if match else None
+        report = {
+            'code_rate': match.groups()[0] if match else None,
+            'messages': lint_report
+        }
+        return report
 
     def iterate_commits(self):
         prev_commit_id = None

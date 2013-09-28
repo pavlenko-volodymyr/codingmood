@@ -14,7 +14,9 @@ class Commit(TimeStampedModel):
     code_rate = models.FloatField()
 
     date = models.DateTimeField()
-    prev_date = models.DateTimeField()
+    prev_date = models.DateTimeField(null=True, blank=True)
+
+    messages = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
-        return self.hash
+        return self.commit_id
