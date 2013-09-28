@@ -18,5 +18,5 @@ build
 *.log
 
 
-local_settings.py
+local.py
 .idea/*
