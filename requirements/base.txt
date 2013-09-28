@@ -13,3 +13,4 @@ django-redis==3.3
 django-celery==3.0.23
 Pillow==2.1.0
 django_ace
+requests
