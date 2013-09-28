@@ -15,4 +15,10 @@ class Post(models.Model):
     mood_positive = models.SmallIntegerField(default=0)
     mood_negative = models.SmallIntegerField(default=0)
     mood_neutral = models.SmallIntegerField(default=0)
-    link = models.CharField(max_length=255)
+    link = models.URLField()
+
+    def get_absolute_mood(self):
+        """
+        Calculate mood absolute value from -10 to 10
+        """
+        return self.mood_positive - self.mood_negative
