@@ -1,41 +1,34 @@
+from datetime import datetime
 from urlparse import urlparse, parse_qs
 
 from celery import task
+from facebook import GraphAPI
 from social_auth.db.django_models import UserSocialAuth
 
-from .utils import get_text_sentiment_analysis, graph_connection as graph
+from django.conf import settings
+
+from .utils import get_text_sentiment_analysis
 from .models import Post
 
 
 @task
 def get_user_timeline(facebook_id):
     user_social_profile = UserSocialAuth.objects.get(uid=facebook_id)
-    user = user_social_profile.user
-    limit = 100
-    page = graph.request(str(facebook_id)+'/feed', args={'fields': 'created_time,message,link,from', 'limit':limit})
-    parse_page(page.get('data', []), user)
-    while True:
-        if page.get('paging') and page.get('paging').get('next'):
-            next_url = urlparse(page.get('paging').get('next'))
-            query = parse_qs(next_url.query)
 
-            page = graph.request(str(facebook_id)+'/feed', args={'fields': 'created_time,message,link,from', 'limit':limit, 'until': ','.join(query.get('until'))})
-            parse_page(page.get('data', []), user)
+    graph = GraphAPI(user_social_profile.extra_data.get('access_token'))
 
-            print 'page %s'% ','.join(query.get('until'))
-        else:
-            return 1
+    graph.extend_access_token(settings.FACEBOOK_APP_ID, settings.FACEBOOK_API_SECRET)
 
-def parse_page(posts, user):
-    for post in posts:
-        if not post.get('message', False):
-            # no need in posts which we can't analyze
-            continue
+    limit = 100500
+    # TODO add limitations by start and end time
+    query = 'SELECT created_time, message, permalink FROM stream WHERE source_id = %(user_id)d and message != "" LIMIT %(limit)d' % {'user_id': facebook_id, 'limit': limit}
+    res = graph.fql(query)
 
-        post = Post(user=user,
-                    created=post.get('created_time'),
+    for post in res:
+        post = Post(user=user_social_profile.user,
+                    created=datetime.fromtimestamp(post.get('created_time')),
                     content=post.get('message'),
-                    link=post.get('link'),
+                    link=post.get('permalink'),
                  )
         mood_stats = get_text_sentiment_analysis(post.content)
         post.mood = mood_stats.get('total')
