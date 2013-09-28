@@ -189,15 +189,14 @@ DJANGO_APPS = (
 
     # Admin panel and documentation:
     'django.contrib.admin',
-    # 'django.contrib.admindocs',
 )
 
 THIRD_PARTY_APPS = (
-    # Database migration helpers:
     'south',
     'django_extensions',
     'model_utils',
-    'braces'
+    'braces',
+    'djcelery',
 )
 
 # Apps specific for this project go here.
@@ -242,6 +241,8 @@ LOGGING = {
 }
 ########## END LOGGING CONFIGURATION
 
+import djcelery
+djcelery.setup_loader()
 
 ########## WSGI CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
