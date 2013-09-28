@@ -14,3 +14,4 @@ django-celery==3.0.23
 Pillow==2.1.0
 django_ace
 requests
+pylint
