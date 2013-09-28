@@ -6,7 +6,7 @@ class Post(models.Model):
     user = models.ForeignKey(User)
     created = models.DateTimeField()
     content = models.TextField()
-    mood = models.SmallIntegerField(default=0, db_index=True)
+    mood = models.CharField(max_length=15, db_index=True)
     mood_positive = models.SmallIntegerField(default=0)
     mood_negative = models.SmallIntegerField(default=0)
     mood_neutral = models.SmallIntegerField(default=0)
