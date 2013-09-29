@@ -21,7 +21,7 @@ def grab_users_posts(facebook_id):
 
     limit = 100500
     # TODO add limitations by start and end time
-    query = 'SELECT created_time, message, permalink FROM stream WHERE source_id = %(user_id)d and message != "" LIMIT %(limit)d' % {'user_id': facebook_id, 'limit': limit}
+    query = 'SELECT created_time, message, permalink FROM stream WHERE source_id = %(user_id)s and message != "" LIMIT %(limit)d' % {'user_id': facebook_id, 'limit': limit}
     res = graph.fql(query)
 
     for post in res:

@@ -222,6 +222,8 @@ AUTHENTICATION_BACKENDS = (
 
 FACEBOOK_EXTENDED_PERMISSIONS = ['user_likes', 'manage_notifications', 'user_activities', 'read_stream']
 
+LOGIN_REDIRECT_URL = '/'
+
 CACHES = {
     "default": {
         "BACKEND": "redis_cache.cache.RedisCache",
