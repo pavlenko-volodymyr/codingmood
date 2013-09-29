@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Avg
 from django.contrib.auth.models import User
 
+
 MOOD_CHOICES = (
     ('neg', 'Negative'),
     ('pos', 'Positive'),
@@ -14,8 +15,12 @@ class PostManager(models.Manager):
     
     @property
     def avarage_mood(self):
-        return self.instance.posts.aggregate(Avg('mood_positive')).get('mood_positive__avg',0)\
-               -self.instance.posts.aggregate(Avg('mood_negative')).get('mood_negative__avg',0)
+        avg_mood_positive = self.instance.posts.aggregate(Avg('mood_positive'))['mood_positive__avg'] or 0
+        avg_mood_negative = self.instance.posts.aggregate(Avg('mood_negative'))['mood_negative__avg'] or 0
+        if avg_mood_positive and avg_mood_negative:
+            return round(avg_mood_positive - avg_mood_negative, 0)
+        else:
+            return 0
 
 
 class Post(models.Model):

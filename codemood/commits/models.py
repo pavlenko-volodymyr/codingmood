@@ -1,15 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Avg
 
 from model_utils.models import TimeStampedModel
 
 
-class RepositoryManager(models.Manager):
+class CommitManager(models.Manager):
     use_for_related_fields = True
 
     @property
     def avarage_code_quality(self):
-        return self.instance.commits.aggregate(Avg('code_rate')).get('code_rate__avg', 0)
+        return self.instance.commits.aggregate(Avg('code_rate'))['code_rate__avg'] or 0
 
 
 class Repository(TimeStampedModel):
@@ -18,7 +19,6 @@ class Repository(TimeStampedModel):
     url = models.URLField()
     last_commit_id = models.CharField(max_length=100, null=True, blank=True)
 
-    objects = RepositoryManager()
 
     @property
     def avarage_code_quality(self):
@@ -52,6 +52,8 @@ class Commit(TimeStampedModel):
     n_of_row_deleted = models.PositiveIntegerField(default=0)
 
     repository = models.ForeignKey(Repository, related_name='commits')
+
+    objects = CommitManager()
 
     def __unicode__(self):
         return self.commit_id
