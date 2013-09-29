@@ -58,7 +58,9 @@ class AuthenticatedIndex(FormView):
         form.instance.user = self.request.user
         form.save()
 
-        grab_users_posts.delay()
+        grab_users_posts.delay(self.request.user.social_auth.all()[0].uid,
+                               form.cleaned_data['start_date'],
+                               form.cleaned_data['end_date'])
         return redirect(self.get_success_url())
 
 
