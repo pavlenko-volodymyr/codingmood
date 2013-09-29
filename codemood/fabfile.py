@@ -10,40 +10,35 @@ import fabtools
 from fabtools.utils import run_as_root
 
 
-env.virtual_env = "gbsb"
-env.project_user = "gbsb"
-env.git_repo = "git@github.com:YesNoEX/gbsb-gift-exchange.git"
-env.git_repo_name = "gbsb-gift-exchange"
-env.project_name = "gift_exchange"
-env.home_dir = "/home/gbsb"
+env.virtual_env = "codemood"
+env.project_user = "codemood"
+env.git_repo = "git@github.com:mindinpanic/codingmood.git"
+env.git_repo_name = "codemood"
+env.project_name = "codemood"
+env.home_dir = "/home/codemood"
 env.project_root = '%(home_dir)s/src/' % env
 env.project_dir = '%s%s' % (env.project_root, env.git_repo_name)
-env.credentials_file = '%(project_dir)s/%(project_name)s/settings/credentials.py' % env
-env.static_dir = '%s/%s/public/static/' % (env.project_dir, env.project_name)
+env.static_dir = '%s/%s/assets/' % (env.project_dir, env.project_name)
 env.project_logs = "%slogs" % env.project_root
 env.config_templates = "%s/config/" % env.project_dir
 env.virtualenv_dir = "/root/.virtualenvs"
 env.nginx_sites_available_dir = "/etc/nginx/sites-available/"
-env.nginx_sites_available = "/etc/nginx/sites-available/gbsb-site.conf"
-env.nginx_sites_enabled = "/etc/nginx/sites-enabled/gbsb-site.conf"
+env.nginx_sites_available = "/etc/nginx/sites-available/codemood-site.conf"
+env.nginx_sites_enabled = "/etc/nginx/sites-enabled/codemood-site.conf"
 env.nginx_sites_enabled_dir = "/etc/nginx/sites-enabled/"
-env.logrotate = "/etc/logrotate.d/gbsb"
 env.python_path = "%(virtualenv_dir)s/%(virtual_env)s/lib/python2.7/site-packages/" % env
 env.python_bin = "%(virtualenv_dir)s/%(virtual_env)s/bin/python" % env
 env.db_user = "postgres"
-# default password for setup, can be changed later
-env.db_password = "1qaz2wsx0"
 env.use_ssh_config = True
-env.bitcoin_dir = "%(home_dir)s/.bitcoin" % env
 env.verbose = True
 
 
 
 @task()
-def stage():
-    env.hosts = ['192.241.197.245', ]
+def production():
+    env.hosts = ['192.241.252.102',]
     env.user = 'root'
-    env.settings_module_name = "stage"
+    env.settings_module_name = "production"
 
 
 def info(msg):
@@ -74,7 +69,7 @@ def git_pull(remote="origin", branch="master"):
 @task(alias="pip")
 def pip_install():
     with settings(cd(env.project_dir), _workon()):
-        run('pip install -r reqs/dev.txt')
+        run('pip install -r requirements.txt')
 
 
 @task
@@ -104,14 +99,15 @@ def collectstatic():
 def redis_service(command):
     sudo("service redis-server %s" % command, pty=False)
 
+
 @task
 def restart():
     redis_service("restart")
     with _workon():
         setup_nginx()
         setup_supervisor()
-        run("supervisorctl restart gbsb_gunicorn")
-        run("supervisorctl restart gbsb_celery")
+        run("supervisorctl restart codemood_gunicorn")
+        run("supervisorctl restart codemood_celery")
     restart_supervisord()
 
 
@@ -119,18 +115,16 @@ def restart():
 def start():
     redis_service("start")
     with _workon():
-        run("supervisorctl start gbsb_gunicorn")
-        run("supervisorctl start gbsb_celery")
-        # run("supervisorctl start celerybeat-gift")
+        run("supervisorctl start codemood_gunicorn")
+        run("supervisorctl start codemood_celery")
 
 
 @task
 def stop():
     redis_service("stop")
     with _workon():
-        run("supervisorctl stop gbsb_gunicorn")
-        run("supervisorctl stop gbsb_celery")
-        # run("supervisorctl stop celerybeat-gift")
+        run("supervisorctl stop codemood_gunicorn")
+        run("supervisorctl stop codemood_celery")
 
 
 @task(alias="run")
@@ -140,25 +134,7 @@ def run_command(command):
 
 
 @task()
-def bash(command):
-    run(command)
-
-
-@task()
 def setup_user(with_key):
-    if not files.exists("~/.ssh/id_rsa.pub"):
-        run("ssh-keygen -t rsa")
-
-    key_file_content = run("cat ~/.ssh/id_rsa.pub", quiet=True)
-    print(key_file_content)
-    answer = prompt(default="no", text='Please, add this key to the github keys at first. Then type "yes"')
-    if answer != "yes":
-        sys.exit("Can't continue setup without keys")
-
-    if "/" in local("whereis ssh-copy-id", capture=True) and with_key:
-        for host in env.hosts:
-            local("ssh-copy-id -i ~/.ssh/id_rsa.pub {user}@{host}".format(user=env.user, host=host))
-
     if not fabtools.user.exists(env.project_user):
         fabtools.user.create(env.project_user)
         if not fabtools.files.is_file('/home/{user}/.ssh/authorized_keys'.format(user=env.project_user)):
@@ -172,8 +148,7 @@ def setup_environment():
     fabtools.deb.update_index()
 
     fabtools.require.deb.packages([
-        'git', 'libcurl4-gnutls-dev',
-        'libexpat1-dev', 'gettext libz-dev',
+        'git', 'libexpat1-dev', 'gettext libz-dev',
         'libssl-dev', 'build-essential',
         'python', 'python-dev', 'python-pip',
         'nginx', 'postgresql-9.1', 'postgresql-server-dev-9.1', 'libxml2-dev', 'libxslt-dev',
@@ -192,8 +167,8 @@ def setup_environment():
         'ruby1.8-dev',
     ])
 
-    fabtools.python.install('virtualenv', use_sudo=True)
-    fabtools.python.install('virtualenvwrapper', use_sudo=True)
+    # fabtools.python.install('virtualenv', use_sudo=True)
+    # fabtools.python.install('virtualenvwrapper', use_sudo=True)
 
     if not files.contains("~/.bashrc", "export WORKON_HOME={virtualenv_dir}".format(
             virtualenv_dir=env.virtualenv_dir)):
@@ -250,9 +225,9 @@ def setup_project():
 
     pip_install()
 
-    with settings(cd(env.project_dir), _workon()):
-        if not files.exists('common/settings/production.py'):
-            run("cp common/settings/production.py.example gift_exchange/settings/production.py")
+    # with settings(cd(env.project_dir), _workon()):
+    #     if not files.exists('common/settings/production.py'):
+    #         run("cp common/settings/production.py.example gift_exchange/settings/production.py")
 
 
 @task()

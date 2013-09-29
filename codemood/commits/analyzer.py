@@ -62,13 +62,14 @@ class Analyzer(object):
 
         return all_complexity, cc_rank(all_complexity)
 
-    def __init__(self, url):
+    def __init__(self, url, repository_id):
         self.url = url
         self.repo_name = self.url.split('/')[-1].strip(".git")
         self.repo_dir_path = normpath(join(settings.GIT_REPOSITORIES_DIR, self.repo_name))
         self.repo = None if not isdir(normpath(join(self.repo_dir_path, '.git'))) else Repo(self.repo_dir_path)
         self.errors_files = []
         self.commits = []
+        self.repository_id = 1
 
     def clone_repository(self):
         """
@@ -112,14 +113,12 @@ class Analyzer(object):
         skip_rules = lambda j: any([
             not j.endswith(".py"),
             j.endswith("__init__.py"),
-            'settings' in j
+            'settings' in j,
+            '/migrations/' in j
         ])
         return [i for i in self.repo.git.ls_files().split() if not skip_rules(i)]
 
     def update_repository(self):
-        pass
-
-    def pre_commit_checkout(self, commit_id, prev_commit_id=None):
         pass
 
     def post_commit_checkout(self, commit_id, prev_commit_id=None):
@@ -176,7 +175,6 @@ class Analyzer(object):
         """
         prev_commit_id = None
         for commit_id in self.commits_ids:
-            self.pre_commit_checkout(commit_id, prev_commit_id)
             self.repo.git.checkout(commit_id)
             try:
                 self.post_commit_checkout(commit_id, prev_commit_id)
@@ -184,7 +182,12 @@ class Analyzer(object):
                 self.repo.git.checkout('master')
             prev_commit_id = commit_id
         self.repo.git.checkout('master')
-        # print(self.errors_files)
+
+        # save rest of commits
+        Commit.objects.bulk_create(
+            [Commit(repository_id=self.repository_id, **data) for data in self.commits]
+        )
+
 
     def save_commits(self):
         """
@@ -192,8 +195,7 @@ class Analyzer(object):
         using bulk_create
         """
         if len(self.commits) == self.bulksave_size:
-            # TODO: remove repository_id=1
             Commit.objects.bulk_create(
-                [Commit(repository_id=1, **data) for data in self.commits]
+                [Commit(repository_id=self.repository_id, **data) for data in self.commits]
             )
             self.commits = []
