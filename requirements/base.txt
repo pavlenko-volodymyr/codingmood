@@ -17,3 +17,4 @@ requests
 pylint
 django-gravatar
 sorl-thumbnail
+radon
