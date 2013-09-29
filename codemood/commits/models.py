@@ -18,8 +18,10 @@ class Commit(TimeStampedModel):
 
     messages = models.TextField(null=True, blank=True)
 
-    author = models.TextField(null=True, blank=True)
+    author = models.CharField(max_length=125, null=True, blank=True)
     author_email = models.EmailField(null=True, blank=True)
+
+    cyclomatic_complexity = models.IntegerField()
 
     def __unicode__(self):
         return self.commit_id
