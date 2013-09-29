@@ -201,7 +201,8 @@ THIRD_PARTY_APPS = (
     'social_auth',
     'django_ace',
     'gravatar',
-    'sorl.thumbnail'
+    'sorl.thumbnail',
+    'gunicorn'
 )
 
 # Apps specific for this project go here.

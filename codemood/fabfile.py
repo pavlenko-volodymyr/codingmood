@@ -17,7 +17,7 @@ env.git_repo_name = "codemood"
 env.project_name = "codemood"
 env.home_dir = "/home/codemood"
 env.project_root = '%(home_dir)s/src/' % env
-env.project_dir = '%s%s' % (env.project_root, env.git_repo_name)
+env.project_dir = '%s%s/%s' % (env.project_root, env.git_repo_name, env.git_repo_name)
 env.static_dir = '%s/%s/assets/' % (env.project_dir, env.project_name)
 env.project_logs = "%slogs" % env.project_root
 env.config_templates = "%s/config/" % env.project_dir
@@ -36,7 +36,7 @@ env.verbose = True
 
 @task()
 def production():
-    env.hosts = ['192.241.252.102',]
+    env.hosts = ['192.241.252.102']
     env.user = 'root'
     env.settings_module_name = "production"
 
@@ -87,7 +87,7 @@ def restart_supervisord():
     with _workon():
         if files.exists("/tmp/supervisord.pid"):
             run("cat /tmp/supervisord.pid | xargs kill")
-        run("supervisord -c /etc/supervisord.conf ")
+        run("supervisord -c /etc/supervisord.conf")
 
 
 @task(alias="static")
