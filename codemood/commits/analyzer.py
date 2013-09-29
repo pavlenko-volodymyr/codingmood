@@ -1,8 +1,6 @@
 import re
 import sys
 from math import pow
-import os
-from subprocess import Popen, PIPE, STDOUT
 from cStringIO import StringIO
 from os.path import join, normpath, isdir
 from os import mkdir
@@ -13,13 +11,12 @@ from datetime import datetime
 from radon.complexity import cc_visit, sorted_results, cc_rank
 
 from git import Git, Repo
-from pylint import epylint as lint
 from pylint.lint import Run
 
 from django.conf import settings
 
 
-from .models import Commit
+from .models import Commit, Repository
 
 
 class Analyzer(object):
@@ -69,7 +66,8 @@ class Analyzer(object):
         self.repo = None if not isdir(normpath(join(self.repo_dir_path, '.git'))) else Repo(self.repo_dir_path)
         self.errors_files = []
         self.commits = []
-        self.repository_id = 1
+        self.repository_id = repository_id
+        self.repository_model = Repository.objects.get(id=repository_id)
 
     def clone_repository(self):
         """
@@ -88,10 +86,6 @@ class Analyzer(object):
 
         self.repo = Repo(self.repo_dir_path)
         return cloned_successful
-
-    @property
-    def first_commit(self):
-        return next(reversed(self.commits_ids), None)
 
     @property
     def commits_ids(self):
@@ -188,6 +182,9 @@ class Analyzer(object):
             [Commit(repository_id=self.repository_id, **data) for data in self.commits]
         )
 
+        # Save last commit
+        self.repository_model.last_commit_id = commit_id
+        self.repository_model.save()
 
     def save_commits(self):
         """
