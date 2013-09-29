@@ -20,6 +20,9 @@ class Repository(TimeStampedModel):
     last_commit_id = models.CharField(max_length=100, null=True, blank=True)
 
 
+    def __unicode__(self):
+        return self.title
+
     @property
     def avarage_code_quality(self):
         return self.id
@@ -27,7 +30,7 @@ class Repository(TimeStampedModel):
     def save(self, *args, **kwargs):
         super(Repository, self).save(*args, **kwargs)
         from .tasks import process_repository
-        process_repository.delay(self.url, self.id)
+        process_repository.delay(self.url, self.id, self.user.id)
 
 
 class Commit(TimeStampedModel):
