@@ -46,6 +46,9 @@ def grab_users_posts(facebook_id, start_date=None, end_date=None):
     res = graph.fql(query % {'user_id': facebook_id, 'limit': limit})
 
     for post in res:
+        if Post.objects.filter(link=post['permalink']).exists()
+            continue
+
         post = Post(user=user_social_profile.user,
                     created=datetime.fromtimestamp(post['created_time']),
                     content=post['message'],
