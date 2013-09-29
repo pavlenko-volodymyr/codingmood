@@ -18,7 +18,7 @@ env.project_name = "codemood"
 env.home_dir = "/home/codemood"
 env.project_root = '%(home_dir)s/src/' % env
 env.project_dir = '%s%s/%s' % (env.project_root, env.git_repo_name, env.git_repo_name)
-env.static_dir = '%s/%s/assets/' % (env.project_dir, env.project_name)
+env.static_dir = '%s/assets/' % env.project_dir
 env.project_logs = "%slogs" % env.project_root
 env.config_templates = "%s/config/" % env.project_dir
 env.virtualenv_dir = "/root/.virtualenvs"
@@ -39,6 +39,7 @@ def production():
     env.hosts = ['192.241.252.102']
     env.user = 'root'
     env.settings_module_name = "production"
+    print env.project_dir
 
 
 def info(msg):
@@ -50,7 +51,7 @@ def _workon():
     workon_command = [
         "source /usr/local/bin/virtualenvwrapper.sh",
         "workon {virtual_env}".format(virtual_env=env.virtual_env),
-        "export DJANGO_SETTINGS_MODULE=codemood.settings.%(settings_module_name)s" % env
+        "export DJANGO_SETTINGS_MODULE=codemood.settings.local" % env
     ]
     return prefix(" && ".join(workon_command))
 
@@ -69,7 +70,7 @@ def git_pull(remote="origin", branch="master"):
 @task(alias="pip")
 def pip_install():
     with settings(cd(env.project_dir), _workon()):
-        run('pip install -r requirements.txt')
+        run('pip install -r ../requirements.txt')
 
 
 @task
@@ -157,7 +158,7 @@ def setup_environment():
         "libreadline6", "libreadline6-dev", "zlib1g", "zlib1g-dev", "libssl-dev", "libyaml-dev",
         "libsqlite3-dev", "sqlite3", "libxml2-dev", "libxslt-dev", "libpq-dev",
         "autoconf", "libc6-dev", "ncurses-dev", "automake", "libtool", "bison", "subversion",
-        "gawk", "libgdbm-dev", "libffi-dev", "redis-server"
+        "gawk", "libgdbm-dev", "libffi-dev", "rabbitmq-server"
     ])
 
     fabtools.require.deb.nopackages([
@@ -237,7 +238,9 @@ def setup_db():
     if not files.exists("/etc/locale.gen"):
         run("ln -s /etc/locale.alias /etc/locale.gen")
 
-    fabtools.require.postgres.user(env.db_user, env.db_password)
+    db_password = prompt('Db password: ')
+
+    fabtools.require.postgres.user(env.db_user, db_password)
     fabtools.require.postgres.database(env.virtual_env, env.db_user)
 
 
