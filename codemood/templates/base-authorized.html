@@ -5,13 +5,8 @@
 
 {% block body %}
   <div class="masthead">
-    <div class="pull-right gravatar" style="background-image:url('{% gravatar_for_user request.user 100 %}');">
-
-    <img src="">
-    </div>
+    <div class="pull-right gravatar" style="background-image:url('{% gravatar_for_user request.user 100 %}');"></div>
     <h3 class="muted">Codingmood</h3>
-
-
   </div>
 
   <hr>
@@ -24,6 +19,7 @@
           <li><a href="{% url 'badges:list' %}">Badges</a></li>
         </ul>
       </div>
+      {% block left-side %}{% endblock %}
     </div>
 
     {% block container %}{% endblock %}
