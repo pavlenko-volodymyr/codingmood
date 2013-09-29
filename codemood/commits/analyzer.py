@@ -17,13 +17,18 @@ from pylint.lint import Run
 from django.conf import settings
 
 
-from .models import Commit
+from models import Commit
 
 
 class Analyzer(object):
+    bulksave_size = 50
     code_rate_pattern = re.compile(r"Your code has been rated at ([-0-9.]+)")
 
     def _lint(self, file_path):
+        """
+        Apply pylint to the given filepath.
+        Returns raw report
+        """
         old_stdout, old_stderr = sys.stdout, sys.stderr
         sys.stdout, sys.stderr = StringIO(), StringIO()
 
@@ -35,7 +40,7 @@ class Analyzer(object):
         ]
         try:
             Run(lint_options, exit=False)
-        except AttributeError:
+        except (AttributeError, TypeError):
             # sometimes we have lint errors with reading file
             self.errors_files.append(file_path)
             return ''
@@ -53,6 +58,9 @@ class Analyzer(object):
         self.commits = []
 
     def clone_repository(self):
+        """
+        Clone current repository to the sandbox dir
+        """
         if isdir(self.repo_dir_path):
             rmtree(self.repo_dir_path)
 
@@ -73,6 +81,9 @@ class Analyzer(object):
 
     @property
     def commits_ids(self):
+        """
+        Returns commits id from current cloned repo state
+        """
         try:
             ids = [i.id for i in self.repo.log()]
         except AttributeError:
@@ -82,6 +93,9 @@ class Analyzer(object):
 
     @property
     def python_files(self):
+        """
+        Returns list of python files, exclude __init__ and django settings
+        """
         skip_rules = lambda j: any([
             not j.endswith(".py"),
             j.endswith("__init__.py"),
@@ -96,6 +110,9 @@ class Analyzer(object):
         pass
 
     def post_commit_checkout(self, commit_id, prev_commit_id=None):
+        """
+        Process commit after checkout to it
+        """
         lint_results = map(self.lint_file, self.python_files)
         normalization_koef = pow(10.0, len(lint_results)) / 10.0
         code_rates = filter(None, [i['code_rate'] for i in lint_results])
@@ -120,9 +137,13 @@ class Analyzer(object):
             data['prev_date'] = prev_date
 
         self.commits.append(data)
+        self.save_commits()
         print('{commit_id} {code_rate} {author} {author_email}'.format(**data))
 
     def lint_file(self, file_path):
+        """
+        Get lint report from given file
+        """
         full_file_path = normpath(join(self.repo_dir_path, file_path))
         lint_report = self._lint(full_file_path)
         match = self.code_rate_pattern.search(lint_report)
@@ -133,11 +154,30 @@ class Analyzer(object):
         return report
 
     def iterate_commits(self):
+        """
+        Cycle over commits in current repository state
+        and apply analyzing
+        """
         prev_commit_id = None
         for commit_id in self.commits_ids:
             self.pre_commit_checkout(commit_id, prev_commit_id)
             self.repo.git.checkout(commit_id)
-            self.post_commit_checkout(commit_id, prev_commit_id)
+            try:
+                self.post_commit_checkout(commit_id, prev_commit_id)
+            finally:
+                self.repo.git.checkout('master')
             prev_commit_id = commit_id
         self.repo.git.checkout('master')
         print(self.errors_files)
+
+    def save_commits(self):
+        """
+        Saves analyzed commits info to the database
+        using bulk_create
+        """
+        if len(self.commits) == self.bulksave_size:
+            print('Save commits')
+            Commit.objects.bulk_create(
+                [Commit(**data) for data in self.commits]
+            )
+            self.commits = []
