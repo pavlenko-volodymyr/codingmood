@@ -10,6 +10,8 @@ from shutil import rmtree
 from time import mktime
 from datetime import datetime
 
+from radon.complexity import cc_visit, sorted_results, cc_rank
+
 from git import Git, Repo
 from pylint import epylint as lint
 from pylint.lint import Run
@@ -48,6 +50,17 @@ class Analyzer(object):
         sys.stdout, sys.stderr = old_stdout, old_stderr
 
         return lint_stdout.getvalue()
+
+    def _complexity(self, filepaths):
+        all_complexity = 0
+        for filepath in filepaths:
+            file_obj = open(join(self.repo_dir_path, filepath))
+            results = sorted_results(cc_visit(file_obj.read()))
+            complexities = [i.complexity for i in results]
+            complexity = sum(complexities) / (len(complexities) or 1)
+            all_complexity += complexity
+
+        return all_complexity, cc_rank(all_complexity)
 
     def __init__(self, url):
         self.url = url
@@ -119,6 +132,8 @@ class Analyzer(object):
         code_rates = map(float, code_rates)
         code_rate = sum(code_rates) / normalization_koef
 
+        complexity_score, complexity_rank = self._complexity(self.python_files)
+
         commit = self.repo.commit(commit_id)
         struct_time = commit.committed_date
 
@@ -129,7 +144,9 @@ class Analyzer(object):
             'code_rate': code_rate,
             'messages': "\n".join(i['messages'] for i in lint_results),
             'author': commit.author.name,
-            'author_email': commit.author.email
+            'author_email': commit.author.email,
+            'cyclomatic_complexity': complexity_score,
+            'cyclomatic_complexity_rank': complexity_rank
         }
         if prev_commit_id:
             prev_struct_time = self.repo.commit(commit_id).committed_date
@@ -138,7 +155,7 @@ class Analyzer(object):
 
         self.commits.append(data)
         self.save_commits()
-        # print('{commit_id} {code_rate} {author} {author_email}'.format(**data))
+        print('{commit_id} {code_rate} {cyclomatic_complexity} {author} {author_email}'.format(**data))
 
     def lint_file(self, file_path):
         """
@@ -176,8 +193,8 @@ class Analyzer(object):
         using bulk_create
         """
         if len(self.commits) == self.bulksave_size:
-            # print('Save commits')
+            # TODO: remove repository_id=1
             Commit.objects.bulk_create(
-                [Commit(**data) for data in self.commits]
+                [Commit(repository_id=1, **data) for data in self.commits]
             )
             self.commits = []

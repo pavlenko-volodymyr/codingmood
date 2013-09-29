@@ -21,7 +21,8 @@ class Commit(TimeStampedModel):
     author = models.CharField(max_length=125, null=True, blank=True)
     author_email = models.EmailField(null=True, blank=True)
 
-    cyclomatic_complexity = models.IntegerField()
+    cyclomatic_complexity = models.IntegerField(default=1)
+    cyclomatic_complexity_rank = models.CharField(max_length=1, default='A')
 
     repository = models.ForeignKey(Repository, related_name='commits')
 
