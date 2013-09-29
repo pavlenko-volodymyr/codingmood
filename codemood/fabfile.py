@@ -105,8 +105,8 @@ def redis_service(command):
 def restart():
     redis_service("restart")
     with _workon():
-        setup_nginx()
-        setup_supervisor()
+        #setup_nginx()
+        #setup_supervisor()
         run("supervisorctl restart codemood_gunicorn")
         run("supervisorctl restart codemood_celery")
     restart_supervisord()
