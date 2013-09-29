@@ -40,8 +40,8 @@ class Analyzer(object):
         ]
         try:
             Run(lint_options, exit=False)
-        except (AttributeError, TypeError):
-            # sometimes we have lint errors with reading file
+        except Exception:
+            # sometimes we have mistery exceptions
             self.errors_files.append(file_path)
             return ''
         lint_stdout, lint_stderr = sys.stdout, sys.stderr
@@ -138,7 +138,7 @@ class Analyzer(object):
 
         self.commits.append(data)
         self.save_commits()
-        print('{commit_id} {code_rate} {author} {author_email}'.format(**data))
+        # print('{commit_id} {code_rate} {author} {author_email}'.format(**data))
 
     def lint_file(self, file_path):
         """
@@ -168,7 +168,7 @@ class Analyzer(object):
                 self.repo.git.checkout('master')
             prev_commit_id = commit_id
         self.repo.git.checkout('master')
-        print(self.errors_files)
+        # print(self.errors_files)
 
     def save_commits(self):
         """
@@ -176,7 +176,7 @@ class Analyzer(object):
         using bulk_create
         """
         if len(self.commits) == self.bulksave_size:
-            print('Save commits')
+            # print('Save commits')
             Commit.objects.bulk_create(
                 [Commit(**data) for data in self.commits]
             )
