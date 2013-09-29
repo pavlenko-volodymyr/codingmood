@@ -1,8 +1,8 @@
 from django.conf.urls import patterns, url
 
-from .views import BadgesList
+from .views import BadgeUserList
 
 
 urlpatterns = patterns('',
-    url(r'^$', BadgesList.as_view(), name='list'),
+    url(r'^$', BadgeUserList.as_view(), name='list'),
 )

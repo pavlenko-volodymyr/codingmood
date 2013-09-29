@@ -1,4 +1,5 @@
 import json
+import datetime
 
 from django.conf import settings
 from django.db.models import Q
@@ -42,3 +43,10 @@ class BadgeUser(models.Model):
     commit = models.ForeignKey(Commit, blank=True, null=True)
     post = models.ForeignKey(Post, blank=True, null=True)
     created = models.DateTimeField(_('When got a badge'), auto_now_add=True)
+
+    @property
+    def is_new(self):
+        print 1
+        print datetime.date.today()
+        print self.created.date()
+        return datetime.date.today() == self.created.date()

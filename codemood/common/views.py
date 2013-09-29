@@ -1,7 +1,7 @@
 from django.shortcuts import redirect
 from django.views.generic import TemplateView, FormView
 
-from badges.models import Badge
+from badges.models import Badge, BadgeUser
 from commits.forms import RepositoryForm
 from commits.models import Repository, Commit
 from social.models import Post
@@ -33,8 +33,8 @@ class AuthenticatedIndex(FormView):
         user = self.request.user
 
         repositories = Repository.objects.filter(user=user)
-        context['badge_list'] = Badge.objects.filter(badgeuser__user=user).distinct()[:4]
-        context['git_activity_list'] =  Commit.objects.filter(repository__user=user)
+        context['badgeuser_list'] = BadgeUser.objects.filter(user=user).distinct()[:4]
+        context['git_activity_list'] = Commit.objects.filter(repository__user=user)
 
 
         repositories_statisctics = []

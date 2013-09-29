@@ -4,14 +4,14 @@
 {% block container %}
   <div class="col-md-8">
     <div class="row">
-      {% for badge in badge_list %}
-        <div class="col-md-3 inline-block mbm">
-          <div class="tile">
-            {% thumbnail badge.image "112x111" crop="center" as img %}
-              <img src="{{ img.url }}" alt="{{ badge.title }}" class="tile-image big-illustration">
+      {% for badgeuser in badgeuser_list %}
+        <div class="col-md-4 inline-block mbm">
+          <div class="tile {{ badgeuser.is_new|yesno:'tile-new,tile-old' }}">
+            {% thumbnail badgeuser.badge.image "150x148" crop="center" as img %}
+              <img src="{{ img.url }}" alt="{{ badgeuser.badge.title }}" class="tile-image big-illustration">
             {% endthumbnail %}
-            <h3 class="tile-title">{{ badge.title }}</h3>
-            <p>{{ badge.description }}</p>
+            <h3 class="tile-title">{{ badgeuser.badge.title }}</h3>
+            <p>{{ badgeuser.badge.description }}</p>
           </div>
         </div>
       {% empty %}

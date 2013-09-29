@@ -9,3 +9,13 @@
     color: #e74c3c;
     font-size: 12px;
 }
+.tile.tile-new:before {
+    background: url(../images/tile/new.png) 0 0 no-repeat;
+    background-size: 82px 82px;
+    content: '';
+    height: 82px;
+    position: absolute;
+    right: -4px;
+    top: -4px;
+    width: 82px;
+}
