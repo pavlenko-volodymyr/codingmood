@@ -7,9 +7,9 @@
   google.setOnLoadCallback(drawChart);
   function drawChart() {
     var data = google.visualization.arrayToDataTable([
-      ['ID', 'Mood','Qu', 'Social network','Commits'],
+      ['ID', 'Code quality', 'Mood', 'Social network','Commits'],
         {% for repo in repositories_statisctics %}
-            ['{{ repo.name }}',    {{ repo.code_quality }}, {{ repo.mood }},       'Facebook',        {{ repo.commits }}],
+            ['{{ repo.name }}', {{ repo.mood }}, {{ repo.code_quality }}, 'Facebook', {{ repo.commits }}],
         {% endfor %}
     ]);
 

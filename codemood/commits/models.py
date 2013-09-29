@@ -9,7 +9,7 @@ class RepositoryManager(models.Manager):
 
     @property
     def avarage_code_quality(self):
-        return 2
+        return self.instance.commits.aggregate(Avg('code_rate')).get('code_rate__avg', 0)
 
 
 class Repository(TimeStampedModel):
@@ -31,7 +31,7 @@ class Repository(TimeStampedModel):
 
 
 class Commit(TimeStampedModel):
-    repository = models.ForeignKey(Repository)
+    repository = models.ForeignKey(Repository, related_name='commits')
     #FIXME: should be 38, but maybe i'm wrong
     commit_id = models.CharField(max_length=100)
 
