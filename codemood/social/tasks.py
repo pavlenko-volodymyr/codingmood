@@ -1,5 +1,5 @@
+import time
 from datetime import datetime
-from urlparse import urlparse, parse_qs
 
 from celery import task
 from facebook import GraphAPI
@@ -12,24 +12,45 @@ from .models import Post
 
 
 @task
-def grab_users_posts(facebook_id):
+def grab_users_posts(facebook_id, start_date=None, end_date=None):
+    """
+    Grabs users posts from facebook and saves to database
+
+    facebook_id -- users id in facebook
+    start_date -- exclude posts created before this date, have to be datetime
+    end_date -- exclude posts created after this date, have to be datetime
+    """
+    if start_date:
+        assert type(start_date) is datetime
+    if end_date:
+        assert type(end_date) is datetime
+
     user_social_profile = UserSocialAuth.objects.get(uid=facebook_id)
 
     graph = GraphAPI(user_social_profile.extra_data['access_token'])
 
     graph.extend_access_token(settings.FACEBOOK_APP_ID, settings.FACEBOOK_API_SECRET)
 
+    # TODO: create real pagination
     limit = 100500
-    # TODO add limitations by start and end time
-    query = 'SELECT created_time, message, permalink FROM stream WHERE source_id = %(user_id)s and message != "" LIMIT %(limit)d' % {'user_id': facebook_id, 'limit': limit}
-    res = graph.fql(query)
+
+    query = 'SELECT created_time, message, permalink FROM stream ' \
+            'WHERE source_id = %(user_id)s and message != ""'
+
+    if start_date:
+        query += 'and created_time > %d' % int(time.mktime(start_date.timetuple()))
+    if end_date:
+        query += 'and created_time < %d' % int(time.mktime(end_date.timetuple()))
+
+    query += ' LIMIT %(limit)d'
+    res = graph.fql(query % {'user_id': facebook_id, 'limit': limit})
 
     for post in res:
         post = Post(user=user_social_profile.user,
                     created=datetime.fromtimestamp(post['created_time']),
                     content=post['message'],
                     link=post['permalink'],
-                 )
+                    )
         mood_stats = get_text_sentiment_analysis(post.content)
         post.mood = mood_stats['total']
         post.mood_positive = mood_stats['pos']
