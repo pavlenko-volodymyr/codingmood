@@ -31,7 +31,6 @@ class Repository(TimeStampedModel):
 
 
 class Commit(TimeStampedModel):
-    repository = models.ForeignKey(Repository, related_name='commits')
     #FIXME: should be 38, but maybe i'm wrong
     commit_id = models.CharField(max_length=100)
 

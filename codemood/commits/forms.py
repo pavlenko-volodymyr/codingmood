@@ -21,7 +21,6 @@ class RepositoryForm(forms.ModelForm):
 
     def clean_url(self):
         data = self.cleaned_data['url']
-        print 1
         if not data.endswith('.git'):
             raise forms.ValidationError("Please give us url fo clone, for e.x. https://github.com/user/reopsitory.git")
         return data

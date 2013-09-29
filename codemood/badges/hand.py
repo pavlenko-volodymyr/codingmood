@@ -1,28 +1,32 @@
+from operator import or_, and_
 import json
 from django.db.models import Q
+from commits.models import Commit
 
 
 class HandBages(object):
     def __init__(self, bage_terms):
-        test = map(self.build_Q, json.loads(bage_terms).iteritems())
-        print test
+        self.bage_terms = bage_terms
 
-    def build_Q(self, data):
-        key = data[0]
-        value = data[1]
+    def get_commits(self):
+        q = self.build_query(self.bage_terms.items())
+        return Commit.objects.filter(q)
 
-        if '$' in key:
+    def build_query(self, bage_terms):
+        conn_type = None
+        q = Q()
+        for data in bage_terms:
+            key = data[0]
+            value = data[1]
+
             if key == '$or':
-                pass # or
+                conn_type = Q.OR
             elif key == '$and':
-                pass # and
-            else:
-                return '{0}={1}'.format(key, value).replace('$', '__')
-        else:
-            if type(value) is dict:
-                if len(value) == 1:
-                    return key + self.build_Q(value.items()[0])
-                else:
-                    raise Exception
-            else:
-                return '%s=%s' % (key, value)
+                conn_type = Q.AND
+
+            for t in value.items():
+                q.add(self.build_Q(t[0], t[1]), conn_type)
+        return q
+
+    def build_Q(self, key, value):
+        return Q(**dict(((key, value),)))

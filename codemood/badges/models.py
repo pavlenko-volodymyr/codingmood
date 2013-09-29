@@ -1,4 +1,7 @@
+import json
+
 from django.conf import settings
+from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from django.db import models
 
@@ -21,6 +24,13 @@ class Badge(models.Model):
 
     def __unicode__(self):
         return self.title
+
+    @property
+    def qs_dict(self):
+        return json.loads(self.qs)
+
+    def get_commit_query(self):
+        return Q(**self.qs_dict)
 
 
 class BadgeUser(models.Model):
