@@ -1,5 +1,6 @@
 import re
 import sys
+import logging
 from math import pow
 from cStringIO import StringIO
 from os.path import join, normpath, isdir
@@ -17,6 +18,9 @@ from django.conf import settings
 
 
 from .models import Commit, Repository
+
+
+logger = logging.getLogger('codemood.analyzer')
 
 
 class Analyzer(object):
@@ -135,11 +139,13 @@ class Analyzer(object):
         data = {
             'commit_id': commit_id, 'date': date,
             'code_rate': code_rate,
-            'messages': "\n".join(i['messages'] for i in lint_results),
+            'messages': commit.message,
             'author': commit.author.name,
             'author_email': commit.author.email,
             'cyclomatic_complexity': complexity_score,
-            'cyclomatic_complexity_rank': complexity_rank
+            'cyclomatic_complexity_rank': complexity_rank,
+            'n_of_row_added': commit.stats.total['insertions'],
+            'n_of_row_deleted': commit.stats.total['deletions']
         }
         if prev_commit_id:
             prev_struct_time = self.repo.commit(commit_id).committed_date
@@ -148,6 +154,7 @@ class Analyzer(object):
 
         self.commits.append(data)
         self.save_commits()
+        logging.debug('{commit_id} {code_rate} {author}'.format(**data))
 
     def lint_file(self, file_path):
         """

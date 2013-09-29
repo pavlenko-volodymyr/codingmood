@@ -30,6 +30,9 @@ class Commit(TimeStampedModel):
     cyclomatic_complexity = models.IntegerField(default=1)
     cyclomatic_complexity_rank = models.CharField(max_length=1, default='A')
 
+    n_of_row_added = models.PositiveIntegerField(default=0)
+    n_of_row_deleted = models.PositiveIntegerField(default=0)
+
     repository = models.ForeignKey(Repository, related_name='commits')
 
     def __unicode__(self):
