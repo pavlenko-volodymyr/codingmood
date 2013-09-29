@@ -28,14 +28,26 @@ class AuthenticatedIndex(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(AuthenticatedIndex, self).get_context_data(**kwargs)
+
         user = self.request.user
 
-        #TODO: Add filtering by user
-        context['git_activity_list'] = Commit.objects.all()
-        context['repositories_list'] = Repository.objects.all()
-        
-        context['fb_activity_list'] = Post.objects.filter(user=user).order_by('created')
+        repositories = Repository.objects.filter(user=user)
         context['badge_list'] = Badge.objects.filter(badgeuser__user=user).distinct()[:4]
+        context['git_activity_list'] =  Commit.objects.filter(repository__user=user)
+
+
+        repositories_statisctics = []
+        for repository in repositories:
+            statistics = {'commits': repository.commits.count(),
+                          'name': repository.title,
+                          'code_quality': repository.avarage_code_quality,
+                          'mood': repository.user.posts.avarage_mood}
+            repositories_statisctics.append(statistics)
+
+        context['repositories_statisctics'] = repositories_statisctics
+        context['repositories_list'] = repositories
+
+        context['fb_activity_list'] = Post.objects.filter(user=user).order_by('created')
         return context
 
     def form_valid(self, form):

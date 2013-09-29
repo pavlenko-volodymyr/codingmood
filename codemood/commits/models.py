@@ -1,11 +1,28 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 from model_utils.models import TimeStampedModel
 
 
+class RepositoryManager(models.Manager):
+    use_for_related_fields = True
+
+    @property
+    def avarage_code_quality(self):
+        return 2
+
+
 class Repository(TimeStampedModel):
+    user = models.ForeignKey(User)
+    title = models.CharField(max_length=255)
     url = models.URLField()
     last_commit_id = models.CharField(max_length=100, null=True, blank=True)
+
+    objects = RepositoryManager()
+
+    @property
+    def avarage_code_quality(self):
+        return self.id
 
     def save(self, *args, **kwargs):
         super(Repository, self).save(*args, **kwargs)
@@ -14,6 +31,7 @@ class Repository(TimeStampedModel):
 
 
 class Commit(TimeStampedModel):
+    repository = models.ForeignKey(Repository)
     #FIXME: should be 38, but maybe i'm wrong
     commit_id = models.CharField(max_length=100)
 

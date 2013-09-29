@@ -1,12 +1,39 @@
 {% extends 'base-authorized.html' %}
 {% load thumbnail %}
+{% block head %}
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+  google.load("visualization", "1", {packages:["corechart"]});
+  google.setOnLoadCallback(drawChart);
+  function drawChart() {
+    var data = google.visualization.arrayToDataTable([
+      ['ID', 'Mood','Qu', 'Social network','Commits'],
+        {% for repo in repositories_statisctics %}
+            ['{{ repo.name }}',    {{ repo.code_quality }}, {{ repo.mood }},       'Facebook',        {{ repo.commits }}],
+        {% endfor %}
+    ]);
+
+    var options = {
+      title: 'Correlation between code quality and mood in social networks',
+      hAxis: {title: 'Code Quality', maxValue: 10, minValue: -10, viewWindow: {max:11, min:-11}},
+      vAxis: {title: 'Mood', maxValue: 10, minValue: -10},
+      bubble: {textStyle: {fontSize: 11}},
+      sizeAxis: {minSize: 8}
+    };
+
+    var chart = new google.visualization.BubbleChart(document.getElementById('chart_div'));
+    chart.draw(data, options);
+  }
+</script>
+{% endblock %}
 
 {% block title %} Index page {% endblock %}
+
 {% block container %}
   <div class="col-md-8">
     <div class="row-fluid">
 
-      <div style="height: 400px;" class="palette palette-turquoise span12">
+      <div style="height: 400px;" id="chart_div" class="palette span12">
 
       </div>
 

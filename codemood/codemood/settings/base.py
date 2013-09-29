@@ -221,9 +221,10 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-FACEBOOK_EXTENDED_PERMISSIONS = ['user_likes', 'manage_notifications', 'user_activities', 'read_stream']
+FACEBOOK_EXTENDED_PERMISSIONS = ['email', 'user_likes', 'user_activities', 'read_stream']
 
 LOGIN_REDIRECT_URL = '/'
+LOGIN_ERROR_URL    = '/'
 
 CACHES = {
     "default": {
