@@ -1,4 +1,5 @@
 {% extends 'base-authorized.html' %}
+{% load thumbnail %}
 
 {% block title %} Index page {% endblock %}
 {% block container %}
@@ -8,8 +9,28 @@
       <div style="height: 400px;" class="palette palette-turquoise span12">
 
       </div>
+
+
     </div>
     <hr>
+
+    <div class="row">
+      {% for badge in badge_list %}
+        <div class="col-md-3 inline-block mbm">
+          <div class="tile">
+            {% thumbnail badge.image "112x111" crop="center" as img %}
+              <img src="{{ img.url }}" alt="{{ badge.title }}" class="tile-image big-illustration">
+            {% endthumbnail %}
+            <h3 class="tile-title">{{ badge.title }}</h3>
+            <p>{{ badge.description }}</p>
+          </div>
+        </div>
+      {% empty %}
+        <div class="col-md-4 col-md-offset-4">
+          <div class="palette palette-turquoise text-center">You don't have badges</div>
+        </div>
+      {% endfor %}
+    </div>
 
 
   </div>

@@ -8,7 +8,7 @@ from .models import Badge
 class BadgesList(ListView):
     model = Badge
     template_name = 'badges/list.html'
-    context_object_name = 'bage_list'
+    context_object_name = 'badge_list'
 
     def get_queryset(self):
         user = self.request.user

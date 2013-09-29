@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.views.generic import TemplateView, FormView
 
+from badges.models import Badge
 from commits.forms import RepositoryForm
 from commits.models import Repository, Commit
 from social.models import Post
@@ -27,11 +28,14 @@ class AuthenticatedIndex(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(AuthenticatedIndex, self).get_context_data(**kwargs)
+        user = self.request.user
+
         #TODO: Add filtering by user
         context['git_activity_list'] = Commit.objects.all()
         context['repositories_list'] = Repository.objects.all()
         
-        context['fb_activity_list'] = Post.objects.filter(user=self.request.user).order_by('created')
+        context['fb_activity_list'] = Post.objects.filter(user=user).order_by('created')
+        context['badge_list'] = Badge.objects.filter(badgeuser__user=user).distinct()[:4]
         return context
 
     def form_valid(self, form):

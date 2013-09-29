@@ -3,23 +3,23 @@
 
 {% block container %}
   <div class="col-md-8">
-
-    {% for badge in bage_list %}
-      <div class="col-md-3 inline-block mbm">
-        <div class="tile">
-          {% thumbnail badge.image "112x111" crop="center" as img %}
-          <img src="{{ img.url }}" alt="{{ badge.title }}" class="tile-image big-illustration">
-          {% endthumbnail %}
-          <h3 class="tile-title">{{ badge.title }}</h3>
-          <p>{{ badge.description }}</p>
+    <div class="row">
+      {% for badge in badge_list %}
+        <div class="col-md-3 inline-block mbm">
+          <div class="tile">
+            {% thumbnail badge.image "112x111" crop="center" as img %}
+              <img src="{{ img.url }}" alt="{{ badge.title }}" class="tile-image big-illustration">
+            {% endthumbnail %}
+            <h3 class="tile-title">{{ badge.title }}</h3>
+            <p>{{ badge.description }}</p>
+          </div>
         </div>
-      </div>
-    {% empty %}
-      <div class="row mbl">
-        <a  class="col-md-3 offset4 palette palette-turquoise text-center">You don't have badges</a>
-      </div>
-    {% endfor %}
-
+      {% empty %}
+        <div class="col-md-4 col-md-offset-4">
+          <div class="palette palette-turquoise text-center">You don't have badges</div>
+        </div>
+      {% endfor %}
+    </div>
 
   </div>
 {% endblock %}
