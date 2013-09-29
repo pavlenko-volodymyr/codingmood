@@ -200,7 +200,8 @@ THIRD_PARTY_APPS = (
     'djcelery',
     'social_auth',
     'django_ace',
-    'gravatar'
+    'gravatar',
+    'sorl.thumbnail'
 )
 
 # Apps specific for this project go here.

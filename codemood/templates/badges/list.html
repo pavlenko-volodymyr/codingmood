@@ -1,4 +1,5 @@
 {% extends 'base-authorized.html' %}
+{% load thumbnail %}
 
 {% block container %}
   <div class="span8">
@@ -6,10 +7,11 @@
     {% for badge in bage_list %}
       <div class="span3 inline-block mbm">
         <div class="tile">
-          <img src="images/icons/Compas@2x.png" alt="Compas@2x" class="tile-image big-illustration">
-          <h3 class="tile-title">Web Oriented</h3>
-          <p>100% convertable to HTML/CSS layout.</p>
-          <a class="btn btn-primary btn-large btn-block" href="http://designmodo.com/flat">Get Pro</a>
+          {% thumbnail badge.image "112x111" crop="center" as img %}
+          <img src="{{ img.url }}" alt="{{ badge.title }}" class="tile-image big-illustration">
+          {% endthumbnail %}
+          <h3 class="tile-title">{{ badge.title }}</h3>
+          <p>{{ badge.description }}</p>
         </div>
       </div>
     {% empty %}

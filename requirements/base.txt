@@ -16,3 +16,4 @@ django_ace
 requests
 pylint
 django-gravatar
+sorl-thumbnail
