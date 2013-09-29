@@ -1,5 +1,6 @@
 {% extends 'base-authorized.html' %}
 {% load thumbnail %}
+
 {% block head %}
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
@@ -9,7 +10,7 @@
     var data = google.visualization.arrayToDataTable([
       ['ID', 'Code quality', 'Mood', 'Social network','Commits'],
         {% for repo in repositories_statisctics %}
-            ['{{ repo.name }}', {{ repo.mood }}, {{ repo.code_quality }}, 'Facebook', {{ repo.commits }}],
+            ['{{ repo.name }}', {{ repo.code_quality }}, {{ repo.mood }}, 'Facebook', {{ repo.commits }}],
         {% endfor %}
     ]);
 

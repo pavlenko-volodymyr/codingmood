@@ -5,6 +5,7 @@ from badges.models import Badge
 from commits.forms import RepositoryForm
 from commits.models import Repository, Commit
 from social.models import Post
+from social.tasks import grab_users_posts
 
 
 class Index(TemplateView):
@@ -40,7 +41,7 @@ class AuthenticatedIndex(FormView):
         for repository in repositories:
             statistics = {'commits': repository.commits.count(),
                           'name': repository.title,
-                          'code_quality': repository.avarage_code_quality,
+                          'code_quality': repository.commits.avarage_code_quality,
                           'mood': repository.user.posts.avarage_mood}
             repositories_statisctics.append(statistics)
 
@@ -54,7 +55,10 @@ class AuthenticatedIndex(FormView):
         """
         If the form is valid, redirect to the supplied URL.
         """
+        form.instance.user = self.request.user
         form.save()
+
+        grab_users_posts.delay()
         return redirect(self.get_success_url())
 
 
