@@ -3,6 +3,7 @@ import urllib
 from StringIO import StringIO
 import json
 import time
+from datetime import datetime
 
 import requests
 from social_auth.db.django_models import UserSocialAuth
@@ -16,7 +17,7 @@ from .utils import get_text_sentiment_analysis
 from .tasks import grab_users_posts
 
 
-MOCK_ANALYSIS_RESPONSE= {'probability': {'pos': 0.234, 'neg':0.712, 'neutral': 0.456}, 'label': 'neg'}
+MOCK_ANALYSIS_RESPONSE = {'probability': {'pos': 0.234, 'neg': 0.712, 'neutral': 0.456}, 'label': 'neg'}
 MOCK_FACEBOOK_POSTS = [
     {'created_time': 123123,
      'permalink': 'http://example.com',
@@ -28,19 +29,23 @@ MOCK_FACEBOOK_POSTS = [
     },
 ]
 
+
 def mock_analysis_response(*args, **kwargs):
     class Response(object):
         @staticmethod
         def json():
             return MOCK_ANALYSIS_RESPONSE
+
     x = Response()
     return Response()
+
 
 def mock_facebook_auth_response(*args, **kwargs):
     """
     Mock obtaining of facebook access token
     """
     return StringIO('access_token=123&expires=4444')
+
 
 def mock_facebook_response(*args, **kwargs):
     """
@@ -50,7 +55,6 @@ def mock_facebook_response(*args, **kwargs):
 
 
 class PostTest(TestCase):
-
     def test_get_absolute_mood(self):
         post = Post(mood_positive=7, mood_negative=2)
 
@@ -58,7 +62,6 @@ class PostTest(TestCase):
 
 
 class TestSentimentAnalysis(TestCase):
-
     def test_get_text_sentiment_analysis_empty_text(self):
         """
         Say NO to empty strings parsing!
@@ -85,7 +88,13 @@ class TestFacebookScrapping(TestCase):
     def setUp(self):
         self.extra_data = {'access_token': '100500'}
         self.user = User.objects.create(username='omguser', email='omg@exaple.com')
-        self.social_user = UserSocialAuth.objects.create(user=self.user, uid=self.user_facebook_id, extra_data=self.extra_data)
+        self.social_user = UserSocialAuth.objects.create(user=self.user,
+                                                         uid=self.user_facebook_id,
+                                                         extra_data=self.extra_data)
+
+    def test_grab_users_posts_date_type(self):
+        self.assertRaises(AssertionError, grab_users_posts, self.user_facebook_id, 1231)
+        self.assertRaises(AssertionError, grab_users_posts, self.user_facebook_id, datetime.now(), 'string')
 
     def test_grab_users_posts(self):
         with patch.object(urllib, 'urlopen', new=mock_facebook_auth_response) as mock_method:
