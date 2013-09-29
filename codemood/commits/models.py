@@ -23,5 +23,7 @@ class Commit(TimeStampedModel):
 
     cyclomatic_complexity = models.IntegerField()
 
+    repository = models.ForeignKey(Repository, related_name='commits')
+
     def __unicode__(self):
         return self.commit_id
