@@ -19,7 +19,7 @@ from pylint.lint import Run
 from django.conf import settings
 
 
-from models import Commit
+from .models import Commit
 
 
 class Analyzer(object):
@@ -155,7 +155,6 @@ class Analyzer(object):
 
         self.commits.append(data)
         self.save_commits()
-        print('{commit_id} {code_rate} {cyclomatic_complexity} {author} {author_email}'.format(**data))
 
     def lint_file(self, file_path):
         """

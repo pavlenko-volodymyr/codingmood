@@ -69,3 +69,5 @@ DEBUG_TOOLBAR_CONFIG = {
 
 
 DUMMY_GIT_REPOSITORY = 'git@github.com:mindinpanic/codingmood.git'
+
+CELERY_ALWAYS_EAGER = True

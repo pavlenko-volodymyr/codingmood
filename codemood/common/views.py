@@ -38,7 +38,7 @@ class AuthenticatedIndex(FormView):
         """
         If the form is valid, redirect to the supplied URL.
         """
-        Repository.objects.create(**form.cleaned_data)
+        form.save()
         return redirect(self.get_success_url())
 
 

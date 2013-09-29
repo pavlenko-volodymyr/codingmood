@@ -6,6 +6,13 @@ from model_utils.models import TimeStampedModel
 class Repository(TimeStampedModel):
     url = models.URLField()
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        if is_new:
+            from .tasks import process_repository
+            process_repository.delay(self.url)
+        super(Repository, self).save(*args, **kwargs)
+
 
 class Commit(TimeStampedModel):
     #FIXME: should be 38, but maybe i'm wrong
