@@ -2,29 +2,15 @@
 
 {% block title %} Index page {% endblock %}
 {% block container %}
-  <div class="span8">
+  <div class="col-md-8">
     <div class="row-fluid">
 
       <div style="height: 400px;" class="palette palette-turquoise span12">
 
       </div>
     </div>
+    <hr>
 
-    <div class="row-fluid">
-      <hr>
-      {# Form to add new repo #}
-      <div class="mtl b-form b-add-repo">
-        <form method="post" action=".">
-          {% csrf_token %}
-          {{ form.as_p }}
-          <div class="span3">
-            <input type="submit" class="btn btn-large btn-block btn-primary">
-          </div>
-
-        </form>
-      </div>
-      {# End new repo form #}
-    </div>
 
   </div>
 {% endblock %}
@@ -40,4 +26,55 @@
       {% endfor %}
     </ul>
   </div>
+  <div class="row">
+    <div class="col-md-9">
+
+      {# Form to add new repo #}
+      <div class="mtl b-form b-add-repo">
+        <form method="post" action=".">
+          {% csrf_token %}
+
+          <div class="row-fluid mbl">
+            <div class="control-group{% if form.url.errors %} has-error{% endif %}">
+              {{ form.url.label_tag }}
+              {{ form.url }}
+              {{ form.url.errors }}
+
+            </div>
+          </div>
+
+
+          <div class="row mbl">
+            <div class="col-lg-6{% if form.start_date.errors %} has-error{% endif %}">
+              {{ form.start_date.label_tag }}
+              <div class="form-group mbn">
+                {{ form.start_date }}
+                <span class="input-icon fui-calendar-solid"></span>
+              </div>
+              {{ form.start_date.errors }}
+
+
+            </div>
+            <div class="col-md-6{% if form.end_date.errors %} has-error{% endif %}">
+              {{ form.end_date.label_tag }}
+              <div class="form-group mbn">
+                {{ form.end_date }}
+                <span class="input-icon fui-calendar-solid"></span>
+              </div>
+              {{ form.end_date.errors }}
+
+            </div>
+
+          </div>
+
+
+          <input type="submit" class="btn btn-large btn-block btn-primary">
+
+        </form>
+      </div>
+    </div>
+
+    {# End new repo form #}
+  </div>
+
 {% endblock %}

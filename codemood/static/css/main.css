@@ -3,3 +3,9 @@
     width: 100px;
     height: 100px;
 }
+.b-form ul.errorlist {
+    list-style: none;
+    padding-left: 0px;
+    color: #e74c3c;
+    font-size: 12px;
+}
