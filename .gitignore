@@ -22,3 +22,5 @@ local.py
 .idea/*
 codemood/git_repositories_sandbox/
 media/
+assets/
+celerybeat-schedule
