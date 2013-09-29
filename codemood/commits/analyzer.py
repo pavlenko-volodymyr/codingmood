@@ -67,7 +67,11 @@ class Analyzer(object):
         self.url = url
         self.repo_name = self.url.split('/')[-1].strip(".git")
         self.repo_dir_path = normpath(join(settings.GIT_REPOSITORIES_DIR, self.repo_name))
-        self.repo = None if not isdir(normpath(join(self.repo_dir_path, '.git'))) else Repo(self.repo_dir_path)
+        if not isdir(normpath(join(self.repo_dir_path, '.git'))):
+            self.repo = self.clone_repository()
+        else:
+            self.repo = self.update_repository()
+
         self.errors_files = []
         self.commits = []
         self.repository_id = repository_id
@@ -88,19 +92,18 @@ class Analyzer(object):
         # TODO: Remove this
         assert cloned_successful
 
-        self.repo = Repo(self.repo_dir_path)
-        return cloned_successful
+        return Repo(self.repo_dir_path)
 
     @property
     def commits_ids(self):
         """
         Returns commits id from current cloned repo state
         """
-        try:
-            ids = [i.id for i in self.repo.log()]
-        except AttributeError:
-            # we have problem with regexp for commit message parsing in pythongit
-            ids = self.repo.git.log("master", "--", pretty="%H").splitlines()
+        since_until = "master"
+        if self.repository_model.last_commit_id:
+            since_until = "{}..".format(self.repository_model.last_commit_id)
+        ids = self.repo.git.log(since_until, "--", pretty="%H").splitlines()
+        #print(list(reversed(ids)))
         return reversed(ids)
 
     @property
@@ -117,19 +120,26 @@ class Analyzer(object):
         return [i for i in self.repo.git.ls_files().split() if not skip_rules(i)]
 
     def update_repository(self):
-        pass
+        repo = Repo(self.repo_dir_path)
+        repo.git.fetch("origin")
+        repo.git.reset("origin/master", hard=True)
+        return repo
 
     def post_commit_checkout(self, commit_id, prev_commit_id=None):
         """
         Process commit after checkout to it
         """
-        lint_results = map(self.lint_file, self.python_files)
-        normalization_koef = pow(10.0, len(lint_results)) / 10.0
-        code_rates = filter(None, [i['code_rate'] for i in lint_results])
-        code_rates = map(float, code_rates)
-        code_rate = sum(code_rates) / normalization_koef
+        try:
+            lint_results = map(self.lint_file, self.python_files)
+            normalization_koef = pow(10.0, len(lint_results)) / 10.0
+            code_rates = filter(None, [i['code_rate'] for i in lint_results])
+            code_rates = map(float, code_rates)
+            code_rate = sum(code_rates) / normalization_koef
 
-        complexity_score, complexity_rank = self._complexity(self.python_files)
+            complexity_score, complexity_rank = self._complexity(self.python_files)
+        except SystemError:
+            # linter can have an error in some cases
+            return None
 
         commit = self.repo.commit(commit_id)
         struct_time = commit.committed_date
